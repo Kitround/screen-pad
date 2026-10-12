@@ -35,7 +35,7 @@ More on the jailbreak: [Carbon guide](https://ios.cfw.guide/using-carbon).
 
 ### iPad, option 2: Yam Display (paid, no jailbreak)
 
-Buy [Yam Display](https://apps.apple.com/app/id1024395134) on the App Store and use it instead of the free app. You don't need Yam's own Mac app: don't run it alongside Screen Pad. The backlight stays slightly on while the Mac's displays sleep.
+Buy [Yam Display](https://apps.apple.com/app/id1024395134) on the App Store and use it instead of the free app. You don't need Yam's own Mac app: don't run it alongside Screen Pad.
 
 ## Use
 
