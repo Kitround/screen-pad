@@ -58,6 +58,7 @@ static BOOL writeAll(int fd, const void *buffer, size_t count) {
     CMVideoFormatDescriptionRef _format;  // reader thread only
     BOOL _macAsleep;                      // main thread only: the Mac sent screenOff
     CGFloat _brightness;                  // main thread only: the user's while we hold it at 0, else -1
+    CFAbsoluteTime _keyframeAsked;        // main thread only
 }
 
 - (void)loadView {
@@ -308,7 +309,17 @@ static BOOL writeAll(int fd, const void *buffer, size_t count) {
                          kCMSampleAttachmentKey_DisplayImmediately, kCFBooleanTrue);
     AVSampleBufferDisplayLayer *layer = _layer;
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (layer.status == AVQueuedSampleBufferRenderingStatusFailed) [layer flush];
+        if (layer.status == AVQueuedSampleBufferRenderingStatusFailed) {
+            [layer flush];
+            // The decoder starts over from a keyframe, which the Mac only sends every 120 frames or when asked:
+            // ReadyToReceive makes it send one now. ponytail: once a second at most, so a stream the decoder
+            // never takes can't turn into a keyframe loop.
+            CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
+            if (now - self->_keyframeAsked > 1) {
+                self->_keyframeAsked = now;
+                [self sendEvent:@{@"eventName": @"ReadyToReceive"}];
+            }
+        }
         [layer enqueueSampleBuffer:sample];
         CFRelease(sample);
     });
