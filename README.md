@@ -10,8 +10,8 @@ Screen Pad gives the first iPads, from the iPad 2 and the first iPad mini on, a 
 ## Requirements
 
 - A Mac with macOS 14 or later, and a USB cable.
-- For the free iPad app: an iPad 2, iPad 3 or iPad mini 1 (they stop at iOS 9.3.5 or 9.3.6), or an iPad 4 still on iOS 9.
-- Or, without a jailbreak: any iPad that runs Yam Display (iOS 7.1 or later).
+- For the free iPad app: an iPad 2, iPad 3, iPad mini 1 or iPad 4 on iOS 9.
+- On iOS 7.1 or 8, on a newer iPad, or without a jailbreak: the paid Yam Display app (iOS 7.1 or later).
 
 Tested on an iPad mini 1 with iOS 9.3.5, with both iPad apps (Yam Display 2.2).
 
