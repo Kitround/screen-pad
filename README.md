@@ -5,7 +5,7 @@
 Screen Pad gives the first iPads, from the iPad 2 and the first iPad mini on, a second life as a Mac display:
 
 - **On the Mac**, a menu bar app creates a virtual display and streams it to the iPad as H.264 video.
-- **On the iPad**, a free app shows it, and switches the backlight off while the Mac's displays sleep. It needs a jailbreak; if you'd rather not, the paid [Yam Display](https://apps.apple.com/app/id1024395134) app from the App Store works too.
+- **On the iPad**, a free app shows it, and switches the backlight off while the Mac's displays sleep. It needs a jailbreak; if you'd rather not, the paid [Yam Display](https://apps.apple.com/us/app/yam-display/id1024395134) app from the App Store works too.
 
 ## Requirements
 
@@ -35,7 +35,7 @@ More on the jailbreak: [Carbon guide](https://ios.cfw.guide/using-carbon).
 
 ### iPad, option 2: Yam Display (paid, no jailbreak)
 
-Buy [Yam Display](https://apps.apple.com/app/id1024395134) on the App Store and use it instead of the free app. You don't need Yam's own Mac app: don't run it alongside Screen Pad.
+Buy [Yam Display](https://apps.apple.com/us/app/yam-display/id1024395134) on the App Store and use it instead of the free app. You don't need Yam's own Mac app: don't run it alongside Screen Pad.
 
 ## Use
 
