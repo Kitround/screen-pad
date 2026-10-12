@@ -2,7 +2,7 @@
 <h1 align="center">Screen Pad</h1>
 <p align="center">Un vieil iPad comme écran d’appoint pour le Mac, en USB.<br><a href="README.md">English</a></p>
 
-Screen Pad donne une seconde vie aux premiers iPad, comme écran du Mac :
+Screen Pad donne une seconde vie aux tout premiers iPad, dès l’iPad 2, comme écran du Mac :
 
 - **Sur le Mac**, une app de la barre des menus crée un écran virtuel et l’envoie à l’iPad en vidéo H.264.
 - **Sur l’iPad**, une app gratuite l’affiche. Quand les écrans du Mac se mettent en veille, le rétroéclairage de l’iPad s’éteint.
@@ -19,7 +19,7 @@ Screen Pad donne une seconde vie aux premiers iPad, comme écran du Mac :
 ### Mac
 
 1. Téléchargez `Screen-Pad-1.0-mac.zip` depuis la [dernière version](https://github.com/Kitround/screen-pad/releases/latest), décompressez-le et placez **Screen Pad** dans Applications.
-2. Ouvrez-le. La première fois, macOS le bloque car il n’est pas notarisé : ouvrez **Réglages Système › Confidentialité et sécurité**, descendez et cliquez sur **Ouvrir quand même**.
+2. Ouvrez-le. La première fois, macOS le bloque car il n’est pas notarisé : ouvrez **Réglages Système › Confidentialité et sécurité**, descendez et cliquez sur **Ouvrir quand même**. Screen Pad se trouve dans la barre des menus.
 3. À la première connexion d’un iPad, macOS demande d’autoriser Screen Pad à enregistrer l’écran : activez-le dans **Réglages Système › Confidentialité et sécurité › Enregistrement de l’écran**, puis quittez et rouvrez Screen Pad depuis son icône de la barre des menus.
 
 ### iPad

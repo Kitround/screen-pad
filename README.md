@@ -2,7 +2,7 @@
 <h1 align="center">Screen Pad</h1>
 <p align="center">Turn an old iPad into an extra display for your Mac, over USB.<br><a href="README.fr.md">Français</a></p>
 
-Screen Pad gives the first iPads a second life as a Mac display:
+Screen Pad gives the first iPads, from the iPad 2 on, a second life as a Mac display:
 
 - **On the Mac**, a menu bar app creates a virtual display and streams it to the iPad as H.264 video.
 - **On the iPad**, a free app shows it. While the Mac's displays sleep, the iPad's backlight switches off.
@@ -19,7 +19,7 @@ Screen Pad gives the first iPads a second life as a Mac display:
 ### Mac
 
 1. Download `Screen-Pad-1.0-mac.zip` from the [latest release](https://github.com/Kitround/screen-pad/releases/latest), unzip it and move **Screen Pad** to Applications.
-2. Open it. The first time, macOS blocks it because it isn't notarized: open **System Settings › Privacy & Security**, scroll down and click **Open Anyway**.
+2. Open it. The first time, macOS blocks it because it isn't notarized: open **System Settings › Privacy & Security**, scroll down and click **Open Anyway**. Screen Pad lives in the menu bar.
 3. The first time an iPad connects, macOS asks to let Screen Pad record the screen: turn it on in **System Settings › Privacy & Security › Screen Recording**, then quit and reopen Screen Pad from its menu bar icon.
 
 ### iPad
