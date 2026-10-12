@@ -605,17 +605,28 @@ final class Session {
         if screensAsleep { blank(true) }
         // ponytail: retries every second for as long as macOS keeps stopping the capture; no backoff.
         capture.onStop = { [weak self, weak capture] in
-            guard let self, let capture, capture === self.capture else { return }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { self.restart(because: "capture stopped") }
+            // Checked then: waking screens may have restarted it already, and they will if they sleep.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                guard let self, let capture, capture === self.capture, !screensAsleep else { return }
+                self.restart(because: "capture stopped")
+            }
         }
         Task { @MainActor in
             do {
                 for _ in 0..<20 where !applyDisplayMode() { try await Task.sleep(nanoseconds: 250_000_000) }
                 try await capture.start(displayID: display.displayID, size: video)
+                menuBar.captureWorks()
             } catch {
-                print("\(error)")
-                menuBar.show(tr("Allow Screen Recording, then reopen Screen Pad", "Autorise l’enregistrement de l’écran, puis relance Screen Pad"),
-                             needsPermission: true)
+                print("\(Date()) capture start failed: \(error)")
+                guard CGPreflightScreenCaptureAccess() else {
+                    return menuBar.show(tr("Allow Screen Recording, then reopen Screen Pad",
+                                           "Autorise l’enregistrement de l’écran, puis relance Screen Pad"), needsPermission: true)
+                }
+                // Allowed, but the display can't be captured yet: Mac screens asleep (their waking restarts it), or
+                // just added. ponytail: retries every second while awake, no backoff.
+                guard !screensAsleep else { return }
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                if capture === self.capture { restart(because: "capture failed to start") }
             }
         }
     }
@@ -684,12 +695,20 @@ final class MenuBar: NSObject {
         refresh()
     }
 
+    private var lastStatus = (text: "", active: false)  // shown again once the permission problem is gone
+
     /// Call on the main queue.
     func show(_ status: String, active: Bool = false, needsPermission: Bool = false) {
         print(status)
+        if !needsPermission { lastStatus = (status, active) }
         statusLine.title = status
         item.button?.appearsDisabled = !active
         permissionItem.isHidden = !needsPermission
+    }
+
+    /// Call on the main queue when a capture started: drops a permission message that no longer applies.
+    func captureWorks() {
+        if !permissionItem.isHidden { show(lastStatus.text, active: lastStatus.active) }
     }
 
     /// Call on the main queue, also when the iPad comes or goes.

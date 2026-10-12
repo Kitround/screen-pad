@@ -18,7 +18,7 @@ Screen Pad donne une seconde vie aux tout premiers iPad, dès l’iPad 2, comme 
 
 ### Mac
 
-1. Téléchargez `screenpad-1.0-mac.zip` depuis la [dernière version](https://github.com/Kitround/screenpad/releases/latest), décompressez-le et placez **Screen Pad** dans Applications.
+1. Téléchargez `screenpad-mac.zip` depuis la [dernière version](https://github.com/Kitround/screenpad/releases/latest), décompressez-le et placez **Screen Pad** dans Applications.
 2. Ouvrez-le. La première fois, macOS le bloque car il n’est pas notarisé : ouvrez **Réglages Système › Confidentialité et sécurité**, descendez et cliquez sur **Ouvrir quand même**. Screen Pad se trouve dans la barre des menus.
 3. À la première connexion d’un iPad, macOS demande d’autoriser Screen Pad à enregistrer l’écran : activez-le dans **Réglages Système › Confidentialité et sécurité › Enregistrement de l’écran**, puis quittez et rouvrez Screen Pad depuis son icône de la barre des menus.
 

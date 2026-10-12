@@ -89,5 +89,5 @@ ipad-install: deb
 release: deb
 	$(MAKE) app SIGN=-  # ad hoc: a personal "Apple Development" certificate would carry its owner's name
 	rm -rf build/release && mkdir -p build/release
-	ditto -c -k --keepParent "$(APP)" "build/release/screenpad-$(VERSION)-mac.zip"
+	ditto -c -k --keepParent "$(APP)" "build/release/screenpad-mac.zip"
 	cp build/ipad/repo/debs/*.deb build/release/
