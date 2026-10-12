@@ -2,7 +2,7 @@
 // Virtual display -> ScreenCaptureKit -> H.264 (VideoToolbox) -> usbmuxd tunnel -> iPad app.
 // The iPad app is our own (ipad/main.m) or Yam Display from the App Store: both speak the protocol below.
 // The virtual display, capture and encoder only exist while an iPad is connected (see Session).
-// Display only by default; with "Tactile" (or --touch), taps and drags on the iPad become mouse events.
+// Display only by default; with "Touch" (or --touch), taps and drags on the iPad become mouse events.
 //
 // Protocol, as observed for interoperability with Yam Display 2.x:
 // PeerTalk frames, header [u32 version = 1][u32 type][u32 tag][u32 payload size], all big-endian.
@@ -192,7 +192,7 @@ final class Link {
         send(type: 101, withUnsafeBytes(of: UInt32(utf8.count).bigEndian) { Data($0) } + utf8)
     }
 
-    /// Announces a new video size; Yam stops, reconfigures its decoder and answers ReadyToReceive again.
+    /// Announces a new video size; the iPad app reconfigures its decoder and answers ReadyToReceive again.
     func announce(width: Int, height: Int) {
         lock.withLock { streaming = false }
         sendText("size:\(width)x\(height)")
