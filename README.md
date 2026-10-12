@@ -2,7 +2,7 @@
 <h1 align="center">Screen Pad</h1>
 <p align="center">Turn an old iPad into an extra display for your Mac, over USB.</p>
 
-Screen Pad gives the first iPads, from the iPad 2 on, a second life as a Mac display:
+Screen Pad gives the first iPads, from the iPad 2 and the first iPad mini on, a second life as a Mac display:
 
 - **On the Mac**, a menu bar app creates a virtual display and streams it to the iPad as H.264 video.
 - **On the iPad**, a free app shows it, and switches the backlight off while the Mac's displays sleep. It needs a jailbreak; if you'd rather not, the paid [Yam Display](https://apps.apple.com/app/id1024395134) app from the App Store works too.
