@@ -6,10 +6,10 @@ Depends: mobilesubstrate, uikittools
 Section: Utilities
 Maintainer: Kitround
 Author: Kitround
-Homepage: https://github.com/Kitround/screen-pad
+Homepage: https://github.com/Kitround/screenpad
 Description: Use the iPad as an extra display for your Mac, over USB. Needs the Screen Pad Mac app.
 Filename: debs/screenpad_1.0_iphoneos-arm.deb
-Size: 56158
-MD5sum: 0d9e5f586056bfca421dbe25ca42e3e5
-SHA256: 066b8ae3c9c2f2804e42ac524fdda12fad71d6b26809ee81ec5859a14786953d
+Size: 56148
+MD5sum: a317c6f844fed98c4f5cf57e56b858e3
+SHA256: 7f459e2c1493876c3e6ab78670ef3c4016060eba718fb86d438984819567bb5a
 
