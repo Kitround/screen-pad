@@ -18,7 +18,7 @@ Screen Pad gives the first iPads, from the iPad 2 on, a second life as a Mac dis
 
 ### Mac
 
-1. Download `Screen-Pad-1.0-mac.zip` from the [latest release](https://github.com/Kitround/screen-pad/releases/latest), unzip it and move **Screen Pad** to Applications.
+1. Download `screenpad-1.0-mac.zip` from the [latest release](https://github.com/Kitround/screenpad/releases/latest), unzip it and move **Screen Pad** to Applications.
 2. Open it. The first time, macOS blocks it because it isn't notarized: open **System Settings › Privacy & Security**, scroll down and click **Open Anyway**. Screen Pad lives in the menu bar.
 3. The first time an iPad connects, macOS asks to let Screen Pad record the screen: turn it on in **System Settings › Privacy & Security › Screen Recording**, then quit and reopen Screen Pad from its menu bar icon.
 
@@ -28,7 +28,7 @@ The iPad app needs a jailbroken iPad. The jailbreak runs in Safari, without a co
 
 1. In Safari on the iPad, open `http://carbon.sep.lol` and tap **Run**. It often takes a few tries: if Safari reloads the page, or if the iPad restarts and Cydia isn't on the home screen, try again.
 2. On iOS 9.3.5 or 9.3.6, open Cydia, search for **iocaste untether** and install it, so the jailbreak survives a restart. Don't leave Cydia until it's done.
-3. In Cydia, tap **Sources › Edit › Add**, enter `https://kitround.github.io/screen-pad/`, then install **Screen Pad**.
+3. In Cydia, tap **Sources › Edit › Add**, enter `https://kitround.github.io/screenpad/`, then install **Screen Pad**.
 
 More on the jailbreak: [Carbon guide](https://ios.cfw.guide/using-carbon).
 
