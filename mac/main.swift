@@ -28,6 +28,11 @@ func tr(_ english: String, _ french: String) -> String { prefersFrench ? french 
 var touchEnabled = UserDefaults.standard.bool(forKey: "touch") || CommandLine.arguments.contains("--touch")
 // Supersampling (HiDPI backing downscaled by the capture) unless the user turned it off.
 var smoothing = UserDefaults.standard.object(forKey: "smoothing") as? Bool ?? true
+// Lighter options for busy Macs or USB links: 30 fps halves capture and encoding work, the divisor lowers the bit rate.
+var frameRate = UserDefaults.standard.object(forKey: "frameRate") as? Int ?? 60
+var bitRateDivisor = UserDefaults.standard.object(forKey: "bitRateDivisor") as? Int ?? 1
+/// Headroom so edges stay sharp while things move; scaled with the picture, 16 Mb/s at 1024x768, then divided.
+func bitRate(for size: Size, divisor: Int = bitRateDivisor) -> Int { max(16_000_000, size.width * size.height * 20) / divisor }
 
 struct Failure: Error, CustomStringConvertible {
     let description: String
@@ -362,10 +367,14 @@ final class Encoder {
     private var skipped = false
     private var blanked = false
     private let size: Size
+    private let frameRate: Int
+    private let bitRate: Int
 
-    init(link: Link, size: Size) {
+    init(link: Link, size: Size, frameRate: Int, bitRate: Int) {
         self.link = link
         self.size = size
+        self.frameRate = frameRate
+        self.bitRate = bitRate
     }
 
     private func makeSession() -> VTCompressionSession? {
@@ -379,10 +388,9 @@ final class Encoder {
             kVTCompressionPropertyKey_RealTime: true,
             kVTCompressionPropertyKey_ProfileLevel: kVTProfileLevel_H264_Main_AutoLevel,  // A5 decodes up to High 4.1
             kVTCompressionPropertyKey_AllowFrameReordering: false,
-            // Headroom so edges stay sharp while things move; scaled with the picture, 16 Mb/s at 1024x768.
-            kVTCompressionPropertyKey_AverageBitRate: max(16_000_000, size.width * size.height * 20),
-            kVTCompressionPropertyKey_MaxKeyFrameInterval: 120,
-            kVTCompressionPropertyKey_ExpectedFrameRate: 60,
+            kVTCompressionPropertyKey_AverageBitRate: bitRate,
+            kVTCompressionPropertyKey_MaxKeyFrameInterval: frameRate * 2,  // every 2 s
+            kVTCompressionPropertyKey_ExpectedFrameRate: frameRate,
         ]
         VTSessionSetProperties(session, propertyDictionary: properties as CFDictionary)
         return session
@@ -507,7 +515,7 @@ final class Capture: NSObject, SCStreamOutput, SCStreamDelegate {
 
     init(encoder: Encoder) { self.encoder = encoder }
 
-    func start(displayID: CGDirectDisplayID, size: Size) async throws {
+    func start(displayID: CGDirectDisplayID, size: Size, frameRate: Int) async throws {
         var display: SCDisplay?
         for _ in 0..<20 where display == nil {  // the new display takes a moment to reach ScreenCaptureKit
             display = try await SCShareableContent.current.displays.first { $0.displayID == displayID }
@@ -518,7 +526,7 @@ final class Capture: NSObject, SCStreamOutput, SCStreamDelegate {
         let configuration = SCStreamConfiguration()
         configuration.width = size.width
         configuration.height = size.height
-        configuration.minimumFrameInterval = CMTime(value: 1, timescale: 60)
+        configuration.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(frameRate))
         configuration.pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
         configuration.showsCursor = true
         configuration.queueDepth = 5
@@ -597,7 +605,7 @@ final class Session {
     }
 
     func start() {
-        let encoder = Encoder(link: link, size: video)
+        let encoder = Encoder(link: link, size: video, frameRate: frameRate, bitRate: bitRate(for: video))
         let capture = Capture(encoder: encoder)
         self.capture = capture
         self.encoder = encoder
@@ -614,7 +622,7 @@ final class Session {
         Task { @MainActor in
             do {
                 for _ in 0..<20 where !applyDisplayMode() { try await Task.sleep(nanoseconds: 250_000_000) }
-                try await capture.start(displayID: display.displayID, size: video)
+                try await capture.start(displayID: display.displayID, size: video, frameRate: frameRate)
                 menuBar.captureWorks()
             } catch {
                 print("\(Date()) capture start failed: \(error)")
@@ -673,6 +681,8 @@ final class MenuBar: NSObject {
     private let sizeItem = NSMenuItem(title: tr("Display Size", "Taille d’affichage"), action: nil, keyEquivalent: "")
     private let touchItem = NSMenuItem(title: tr("Touch", "Tactile"), action: #selector(toggleTouch), keyEquivalent: "")
     private let smoothingItem = NSMenuItem(title: tr("Smoothing", "Lissage"), action: #selector(toggleSmoothing), keyEquivalent: "")
+    private let frameRateItem = NSMenuItem(title: tr("Frame Rate", "Images par seconde"), action: nil, keyEquivalent: "")
+    private let bitRateItem = NSMenuItem(title: tr("Bit Rate", "Débit"), action: nil, keyEquivalent: "")
     private let loginItem = NSMenuItem(title: tr("Open at Login", "Ouvrir à l’ouverture de session"), action: #selector(toggleLogin), keyEquivalent: "")
     private let permissionItem = NSMenuItem(title: tr("Allow Screen Recording…", "Autoriser l’enregistrement de l’écran…"),
                                             action: #selector(openScreenRecordingSettings), keyEquivalent: "")
@@ -686,8 +696,10 @@ final class MenuBar: NSObject {
         for menuItem in [touchItem, smoothingItem, loginItem, permissionItem] { menuItem.target = self }
         permissionItem.isHidden = true
         sizeItem.submenu = NSMenu()
+        frameRateItem.submenu = NSMenu()
+        bitRateItem.submenu = NSMenu()
         let menu = NSMenu()
-        menu.items = [statusLine, .separator(), sizeItem, smoothingItem, touchItem, .separator(), loginItem,
+        menu.items = [statusLine, .separator(), sizeItem, smoothingItem, frameRateItem, bitRateItem, touchItem, .separator(), loginItem,
                       permissionItem, .separator(),
                       NSMenuItem(title: tr("Quit Screen Pad", "Quitter Screen Pad"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")]
         item.menu = menu
@@ -716,6 +728,22 @@ final class MenuBar: NSObject {
         touchItem.state = touchEnabled ? .on : .off
         smoothingItem.state = smoothing ? .on : .off
         loginItem.state = SMAppService.mainApp.status == .enabled ? .on : .off
+        frameRateItem.submenu!.items = [30, 60].map { rate in
+            let entry = NSMenuItem(title: tr("\(rate) fps", "\(rate) i/s"), action: #selector(pickFrameRate(_:)), keyEquivalent: "")
+            entry.target = self
+            entry.tag = rate
+            entry.state = rate == frameRate ? .on : .off
+            return entry
+        }
+        let video = session?.video ?? Size(width: 1024, height: 768)
+        bitRateItem.submenu!.items = [4, 2, 1].map { divisor in
+            let entry = NSMenuItem(title: "\(bitRate(for: video, divisor: divisor) / 1_000_000) Mb/s",
+                                   action: #selector(pickBitRate(_:)), keyEquivalent: "")
+            entry.target = self
+            entry.tag = divisor
+            entry.state = divisor == bitRateDivisor ? .on : .off
+            return entry
+        }
         let submenu = sizeItem.submenu!
         submenu.removeAllItems()
         guard let model = session?.model else {
@@ -743,6 +771,20 @@ final class MenuBar: NSObject {
         smoothing.toggle()
         UserDefaults.standard.set(smoothing, forKey: "smoothing")
         session?.reconfigure()
+        refresh()
+    }
+
+    @objc private func pickFrameRate(_ sender: NSMenuItem) {
+        frameRate = sender.tag
+        UserDefaults.standard.set(frameRate, forKey: "frameRate")
+        session?.restart(because: "frame rate \(frameRate)")
+        refresh()
+    }
+
+    @objc private func pickBitRate(_ sender: NSMenuItem) {
+        bitRateDivisor = sender.tag
+        UserDefaults.standard.set(bitRateDivisor, forKey: "bitRateDivisor")
+        session?.restart(because: "bit rate divided by \(bitRateDivisor)")
         refresh()
     }
 
