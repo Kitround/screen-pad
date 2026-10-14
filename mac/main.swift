@@ -511,11 +511,25 @@ final class Capture: NSObject, SCStreamOutput, SCStreamDelegate {
     private let encoder: Encoder
     private var stream: SCStream?
     private var stopped = false  // main thread, like start and stop
+    private let configuration = SCStreamConfiguration()
+    private var displayID: CGDirectDisplayID = 0
+    private var cursorMonitor: Any?
     var onStop: () -> Void = {}
 
     init(encoder: Encoder) { self.encoder = encoder }
 
-    func start(displayID: CGDirectDisplayID, size: Size, frameRate: Int) async throws {
+    /// The cursor is captured only while it is on this display: capturing it makes macOS draw it in software on every
+    /// display, where it lags behind the mouse (hardware cursor otherwise, checked with CGCursorIsDrawnInFramebuffer).
+    private var cursorIsHere: Bool { CGDisplayBounds(displayID).contains(CGEvent(source: nil)?.location ?? .zero) }
+
+    private func followCursor() {
+        guard let stream, cursorIsHere != configuration.showsCursor else { return }
+        configuration.showsCursor.toggle()
+        stream.updateConfiguration(configuration) { _ in }
+    }
+
+    @MainActor func start(displayID: CGDirectDisplayID, size: Size, frameRate: Int) async throws {
+        self.displayID = displayID
         var display: SCDisplay?
         for _ in 0..<20 where display == nil {  // the new display takes a moment to reach ScreenCaptureKit
             display = try await SCShareableContent.current.displays.first { $0.displayID == displayID }
@@ -523,12 +537,11 @@ final class Capture: NSObject, SCStreamOutput, SCStreamDelegate {
         }
         guard let display else { throw Failure("virtual display not visible to ScreenCaptureKit") }
 
-        let configuration = SCStreamConfiguration()
         configuration.width = size.width
         configuration.height = size.height
         configuration.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(frameRate))
         configuration.pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
-        configuration.showsCursor = true
+        configuration.showsCursor = cursorIsHere
         configuration.queueDepth = 5
         let stream = SCStream(filter: SCContentFilter(display: display, excludingWindows: []),
                               configuration: configuration, delegate: self)
@@ -536,10 +549,17 @@ final class Capture: NSObject, SCStreamOutput, SCStreamDelegate {
         try await stream.startCapture()
         guard !stopped else { return try await stream.stopCapture() }  // stopped while starting
         self.stream = stream
+        // ponytail: events going to our own app (its menu open) are missed; the next move outside it catches up.
+        cursorMonitor = NSEvent.addGlobalMonitorForEvents(
+            matching: [.mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged]) { [weak self] _ in
+            self?.followCursor()
+        }
     }
 
     func stop() {
         stopped = true
+        if let cursorMonitor { NSEvent.removeMonitor(cursorMonitor) }
+        cursorMonitor = nil
         stream?.stopCapture { _ in }
         stream = nil
     }
