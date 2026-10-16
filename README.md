@@ -46,6 +46,7 @@ Plug the iPad into the Mac and open Screen Pad (or Yam Display) on the iPad. It 
 - **Frame Rate**: 60 fps by default; 30 fps lightens the load on the Mac.
 - **Bit Rate**: 16 Mb/s by default (at 1024×768), down to 4 Mb/s for a busy USB link. It's a target: busy pictures can go above it.
 - **Touch**: taps and drags on the iPad control the Mac's pointer (macOS asks for Accessibility access). Off by default: it's a display, not a tablet.
+- **Block Mouse**: the Mac's pointer can't go onto the iPad; it stops at the edge, as at the end of the desktop. Off by default.
 - **Open at Login**.
 
 ## Build from source

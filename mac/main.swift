@@ -26,6 +26,8 @@ let prefersFrench = Locale.preferredLanguages.first?.hasPrefix("fr") ?? false
 func tr(_ english: String, _ french: String) -> String { prefersFrench ? french : english }
 // ponytail: unsynchronized Bool, written on main, read on the link thread; a stale read only drops one touch.
 var touchEnabled = UserDefaults.standard.bool(forKey: "touch") || CommandLine.arguments.contains("--touch")
+// Keeps the Mac's mouse off the iPad display, for people who only look at it.
+var mouseBlocked = UserDefaults.standard.bool(forKey: "blockMouse")
 // Supersampling (HiDPI backing downscaled by the capture) unless the user turned it off.
 var smoothing = UserDefaults.standard.object(forKey: "smoothing") as? Bool ?? true
 // Lighter options for busy Macs or USB links: 30 fps halves capture and encoding work, the divisor lowers the bit rate.
@@ -521,8 +523,37 @@ final class Capture: NSObject, SCStreamOutput, SCStreamDelegate {
     /// The cursor is captured only while it is on this display: capturing it makes macOS draw it in software on every
     /// display, where it lags behind the mouse (hardware cursor otherwise, checked with CGCursorIsDrawnInFramebuffer).
     private var cursorIsHere: Bool { CGDisplayBounds(displayID).contains(CGEvent(source: nil)?.location ?? .zero) }
+    private var lastOutside: CGPoint?
+    private static let warpSource = CGEventSource(stateID: .combinedSessionState)
 
-    private func followCursor() {
+    private func followCursor(_ event: NSEvent) {
+        // "Block Mouse": held at the edge it came through, still sliding along it like at the desktop's outer edge;
+        // our own touch events (posted by this process) still go in.
+        // ponytail: warps after the move, so the cursor touches the display edge for a frame.
+        let location = CGEvent(source: nil)?.location ?? .zero
+        let bounds = CGDisplayBounds(displayID)
+        if mouseBlocked, bounds.contains(location),
+           event.cgEvent?.getIntegerValueField(.eventSourceUnixProcessID) != Int64(getpid()) {
+            let main = CGDisplayBounds(CGMainDisplayID())
+            var target = CGPoint(x: main.midX, y: main.midY)  // already here when blocking started
+            if let last = lastOutside {
+                target = location
+                if last.x < bounds.minX { target.x = bounds.minX - 1 }
+                else if last.x >= bounds.maxX { target.x = bounds.maxX }
+                else if last.y < bounds.minY { target.y = bounds.minY - 1 }
+                else { target.y = bounds.maxY }
+                var count: UInt32 = 0
+                CGGetDisplaysWithPoint(target, 0, nil, &count)
+                if count == 0 { target = last }  // past the end of the neighbour display: stay where it was
+            }
+            // A warp otherwise ignores the mouse for 0.25 s: the cursor sticks at the edge.
+            Capture.warpSource?.localEventsSuppressionInterval = 0
+            CGWarpMouseCursorPosition(target)
+            CGAssociateMouseAndMouseCursorPosition(1)
+            lastOutside = target
+            return
+        }
+        if !bounds.contains(location) { lastOutside = location }
         guard let stream, cursorIsHere != configuration.showsCursor else { return }
         configuration.showsCursor.toggle()
         stream.updateConfiguration(configuration) { _ in }
@@ -551,8 +582,8 @@ final class Capture: NSObject, SCStreamOutput, SCStreamDelegate {
         self.stream = stream
         // ponytail: events going to our own app (its menu open) are missed; the next move outside it catches up.
         cursorMonitor = NSEvent.addGlobalMonitorForEvents(
-            matching: [.mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged]) { [weak self] _ in
-            self?.followCursor()
+            matching: [.mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged]) { [weak self] event in
+            self?.followCursor(event)
         }
     }
 
@@ -700,6 +731,7 @@ final class MenuBar: NSObject {
     private let statusLine = NSMenuItem(title: tr("Starting…", "Démarrage…"), action: nil, keyEquivalent: "")
     private let sizeItem = NSMenuItem(title: tr("Display Size", "Taille d’affichage"), action: nil, keyEquivalent: "")
     private let touchItem = NSMenuItem(title: tr("Touch", "Tactile"), action: #selector(toggleTouch), keyEquivalent: "")
+    private let blockMouseItem = NSMenuItem(title: tr("Block Mouse", "Bloquer la souris"), action: #selector(toggleBlockMouse), keyEquivalent: "")
     private let smoothingItem = NSMenuItem(title: tr("Smoothing", "Lissage"), action: #selector(toggleSmoothing), keyEquivalent: "")
     private let frameRateItem = NSMenuItem(title: tr("Frame Rate", "Images par seconde"), action: nil, keyEquivalent: "")
     private let bitRateItem = NSMenuItem(title: tr("Bit Rate", "Débit"), action: nil, keyEquivalent: "")
@@ -713,13 +745,14 @@ final class MenuBar: NSObject {
         icon?.isTemplate = true
         item.button?.image = icon
         item.button?.toolTip = "Screen Pad"
-        for menuItem in [touchItem, smoothingItem, loginItem, permissionItem] { menuItem.target = self }
+        for menuItem in [touchItem, blockMouseItem, smoothingItem, loginItem, permissionItem] { menuItem.target = self }
         permissionItem.isHidden = true
         sizeItem.submenu = NSMenu()
         frameRateItem.submenu = NSMenu()
         bitRateItem.submenu = NSMenu()
         let menu = NSMenu()
-        menu.items = [statusLine, .separator(), sizeItem, smoothingItem, frameRateItem, bitRateItem, touchItem, .separator(), loginItem,
+        menu.items = [statusLine, .separator(), sizeItem, smoothingItem, frameRateItem, bitRateItem, touchItem, blockMouseItem, .separator(),
+                      loginItem,
                       permissionItem, .separator(),
                       NSMenuItem(title: tr("Quit Screen Pad", "Quitter Screen Pad"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")]
         item.menu = menu
@@ -746,6 +779,7 @@ final class MenuBar: NSObject {
     /// Call on the main queue, also when the iPad comes or goes.
     func refresh() {
         touchItem.state = touchEnabled ? .on : .off
+        blockMouseItem.state = mouseBlocked ? .on : .off
         smoothingItem.state = smoothing ? .on : .off
         loginItem.state = SMAppService.mainApp.status == .enabled ? .on : .off
         frameRateItem.submenu!.items = [30, 60].map { rate in
@@ -814,6 +848,12 @@ final class MenuBar: NSObject {
         if touchEnabled {  // mouse events need Accessibility; this shows macOS's prompt when it is missing
             AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary)
         }
+        refresh()
+    }
+
+    @objc private func toggleBlockMouse() {
+        mouseBlocked.toggle()
+        UserDefaults.standard.set(mouseBlocked, forKey: "blockMouse")
         refresh()
     }
 
