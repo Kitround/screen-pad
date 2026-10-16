@@ -554,7 +554,8 @@ final class Capture: NSObject, SCStreamOutput, SCStreamDelegate {
             return
         }
         if !bounds.contains(location) { lastOutside = location }
-        guard let stream, cursorIsHere != configuration.showsCursor else { return }
+        // Blocked, only touches go in: the finger is the pointer, no cursor to capture (no software cursor at all).
+        guard let stream, (cursorIsHere && !mouseBlocked) != configuration.showsCursor else { return }
         configuration.showsCursor.toggle()
         stream.updateConfiguration(configuration) { _ in }
     }
@@ -572,7 +573,7 @@ final class Capture: NSObject, SCStreamOutput, SCStreamDelegate {
         configuration.height = size.height
         configuration.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(frameRate))
         configuration.pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
-        configuration.showsCursor = cursorIsHere
+        configuration.showsCursor = cursorIsHere && !mouseBlocked
         configuration.queueDepth = 5
         let stream = SCStream(filter: SCContentFilter(display: display, excludingWindows: []),
                               configuration: configuration, delegate: self)
