@@ -896,6 +896,23 @@ if NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bu
     exit(0)
 }
 
+// Reopens the app after a crash: a shell waits on a pipe that a clean exit writes to and a crash only closes.
+// Not within 30 s of launch, so a crash at startup can't loop. ponytail: Force Quit (SIGKILL) relaunches too.
+var quitPipe: [Int32] = [0, 0]
+pipe(&quitPipe)
+let quitFD = quitPipe[1]
+var spawnActions: posix_spawn_file_actions_t?
+posix_spawn_file_actions_init(&spawnActions)
+posix_spawn_file_actions_adddup2(&spawnActions, quitPipe[0], 0)
+posix_spawn_file_actions_addclose(&spawnActions, quitPipe[0])
+posix_spawn_file_actions_addclose(&spawnActions, quitFD)
+let watcherScript = #"read -r line; [ -z "$line" ] && [ "$SECONDS" -ge 30 ] && exec /usr/bin/open "$0""#
+var watcherArguments = (["/bin/sh", "-c", watcherScript, Bundle.main.bundlePath] as [String]).map { strdup($0) } + [nil]
+posix_spawn(nil, "/bin/sh", &spawnActions, nil, &watcherArguments, environ)
+close(quitPipe[0])
+atexit { _ = write(quitFD, "q", 1) }  // Quit menu, logout
+signal(SIGTERM) { _ in _ = write(quitFD, "q", 1); _exit(0) }  // pkill (make install)
+
 // Layout check: size 6 = 5 framing bytes + 1 data byte.
 precondition(Encoder.yamPayload([(0x21, Data([9]))]) == Data([6, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0x21, 9]))
 // Model check: the iPad mini 1 gets 1024x768 video whatever the desktop size.
