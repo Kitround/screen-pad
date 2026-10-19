@@ -398,7 +398,9 @@ final class Encoder {
         return session
     }
 
-    deinit { if let session { VTCompressionSessionInvalidate(session) } }
+    /// The last reference is often a pending frame's output handler, so this runs on the session's own callback queue,
+    /// where invalidating it hangs or crashes (VTEncoderSessionEmitEncodedFrame, 19/10): invalidate from elsewhere.
+    deinit { if let session { DispatchQueue.global().async { VTCompressionSessionInvalidate(session) } } }
 
     /// Call on `captureQueue` only. The hardware encoder can be invalidated across Mac sleep: start over with a
     /// fresh session and a keyframe, re-sending the current picture a few times so a static screen recovers too.
