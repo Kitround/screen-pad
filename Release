@@ -1,8 +1,8 @@
-Origin: Screen Pad
-Label: Screen Pad
+Origin: ScreenPad
+Label: ScreenPad
 Suite: stable
 Version: 1.0
 Codename: ios
 Architectures: iphoneos-arm
 Components: main
-Description: Screen Pad, an iPad as an extra display for the Mac
+Description: ScreenPad, an iPad as an extra display for the Mac

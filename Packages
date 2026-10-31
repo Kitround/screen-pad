@@ -1,15 +1,15 @@
 Package: fr.krnd.screenpad
-Name: Screen Pad
-Version: 1.0.1
+Name: ScreenPad
+Version: 1.0.2
 Architecture: iphoneos-arm
 Depends: mobilesubstrate, uikittools
 Section: Utilities
 Maintainer: Kitround
 Author: Kitround
-Homepage: https://github.com/Kitround/screenpad
-Description: Use the iPad as an extra display for your Mac, over USB. Needs the Screen Pad Mac app.
-Filename: debs/screenpad_1.0.1_iphoneos-arm.deb
-Size: 56410
-MD5sum: 1ed80867f7b36be0ecc5d506f84ce446
-SHA256: 033c0032ccc579e04bc259756ab2532538f858a36e45f20818b38f9d532bace5
+Homepage: https://github.com/Kitround/ScreenPad
+Description: Use the iPad as an extra display for your Mac, over USB. Needs the ScreenPad Mac app.
+Filename: debs/screenpad_1.0.2_iphoneos-arm.deb
+Size: 56394
+MD5sum: 71470635623304590fe89e55910179de
+SHA256: 64c898758b8182e7e7b58aab7fdffc9ae6a7245342e8eec04c6afad23858fe27
 
