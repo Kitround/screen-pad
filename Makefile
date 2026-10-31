@@ -1,4 +1,4 @@
-# Screen Pad: an iPad as an extra display for the Mac, over USB.
+# ScreenPad: an iPad as an extra display for the Mac, over USB.
 #   make install       Mac app: build, copy to /Applications and open it
 #   make run           Mac app: run it here, logs in the terminal
 #   make deb           iPad app + backlight tweak as a Cydia package, and the Cydia source in build/ipad/repo
@@ -9,7 +9,7 @@
 
 # A stable identity ("Apple Development: …") keeps the Screen Recording permission across rebuilds; ad hoc loses it.
 SIGN    ?= -
-APP     := build/Screen Pad.app
+APP     := build/ScreenPad.app
 VERSION := $(shell plutil -extract CFBundleShortVersionString raw mac/Info.plist)
 
 .PHONY: app run install clean ipad deb ipad-install release
@@ -20,7 +20,7 @@ app: build/AppIcon.icns
 		swiftc -swift-version 5 -O -target $$arch-apple-macos14.0 -import-objc-header mac/CGVirtualDisplay.h \
 			mac/main.swift -o build/screenpad-$$arch || exit 1; \
 	done
-	lipo -create build/screenpad-arm64 build/screenpad-x86_64 -output "$(APP)/Contents/MacOS/Screen Pad"
+	lipo -create build/screenpad-arm64 build/screenpad-x86_64 -output "$(APP)/Contents/MacOS/ScreenPad"
 	cp mac/Info.plist "$(APP)/Contents/"
 	cp build/AppIcon.icns build/icons/MenuBarIcon.png build/icons/MenuBarIcon@2x.png "$(APP)/Contents/Resources/"
 	codesign -f -s "$(SIGN)" "$(APP)"
@@ -31,13 +31,13 @@ build/AppIcon.icns: mac/icon.swift
 	iconutil -c icns build/icons/AppIcon.iconset -o $@
 
 run: app
-	"$(APP)/Contents/MacOS/Screen Pad"
+	"$(APP)/Contents/MacOS/ScreenPad"
 
 install: app
-	-pkill -x "Screen Pad"
-	rm -rf "/Applications/Screen Pad.app"
+	-pkill -x "ScreenPad"
+	rm -rf "/Applications/ScreenPad.app"
 	cp -R "$(APP)" /Applications/
-	open "/Applications/Screen Pad.app"
+	open "/Applications/ScreenPad.app"
 
 clean:
 	rm -rf build
@@ -71,7 +71,7 @@ $(IPAD_APP)/ScreenPad: ipad/main.m ipad/Info.plist build/AppIcon.icns | $(SDK9)
 	cp ipad/Info.plist build/icons/AppIcon76x76*.png build/icons/AppIcon83.5x83.5*.png $(IPAD_APP)/
 	codesign -f -s - $(IPAD_APP)
 
-# Screen Pad Backlight, loaded into SpringBoard: only SpringBoard may switch the backlight off.
+# ScreenPad Backlight, loaded into SpringBoard: only SpringBoard may switch the backlight off.
 $(TWEAK): ipad/backlight.m | $(SDK9)
 	mkdir -p build/ipad
 	$(CLANG) $(IOS) -dynamiclib -framework Foundation -F$(SDK9)/System/Library/PrivateFrameworks \

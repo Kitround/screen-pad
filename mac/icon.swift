@@ -1,4 +1,4 @@
-// Draws Screen Pad's icons: `swift mac/icon.swift <output dir>` writes AppIcon.iconset/, MenuBarIcon(@2x).png
+// Draws ScreenPad's icons: `swift mac/icon.swift <output dir>` writes AppIcon.iconset/, MenuBarIcon(@2x).png
 // and the iPad app's AppIcon76x76(@2x).png and AppIcon83.5x83.5@2x.png.
 // The logo: a Mac display with an iPad in front of it, extending it.
 import AppKit

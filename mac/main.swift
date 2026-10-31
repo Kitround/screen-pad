@@ -1,4 +1,4 @@
-// Screen Pad — Mac side: a menu bar app that turns a USB-connected iPad into an extra display.
+// ScreenPad — Mac side: a menu bar app that turns a USB-connected iPad into an extra display.
 // Virtual display -> ScreenCaptureKit -> H.264 (VideoToolbox) -> usbmuxd tunnel -> iPad app.
 // The iPad app is our own (ipad/main.m) or Yam Display from the App Store: both speak the protocol below.
 // The virtual display, capture and encoder only exist while an iPad is connected (see Session).
@@ -116,7 +116,7 @@ enum USBMux {
         try send(fd, ["MessageType": "Connect", "DeviceID": deviceID, "PortNumber": Int(port.bigEndian)])
         guard try receive(fd)["Number"] as? Int == 0 else {
             close(fd)
-            throw Failure(tr("Open Screen Pad or Yam Display on the iPad", "Ouvre Screen Pad ou Yam Display sur l’iPad"))
+            throw Failure(tr("Open ScreenPad or Yam Display on the iPad", "Ouvre ScreenPad ou Yam Display sur l’iPad"))
         }
         return fd  // from here on the socket is a raw TCP stream to the iPad app
     }
@@ -628,7 +628,7 @@ final class Session {
         let largest = model.sizes.max { $0.width < $1.width }!
         let descriptor = CGVirtualDisplayDescriptor()
         descriptor.queue = DispatchQueue.main
-        descriptor.name = "Screen Pad"
+        descriptor.name = "ScreenPad"
         descriptor.maxPixelsWide = UInt32(largest.width * 2)  // room for every size drawn at 2x (smoothing)
         descriptor.maxPixelsHigh = UInt32(largest.height * 2)
         descriptor.sizeInMillimeters = CGSize(width: 160, height: 120)
@@ -681,8 +681,8 @@ final class Session {
             } catch {
                 print("\(Date()) capture start failed: \(error)")
                 guard CGPreflightScreenCaptureAccess() else {
-                    return menuBar.show(tr("Allow Screen Recording, then reopen Screen Pad",
-                                           "Autorise l’enregistrement de l’écran, puis relance Screen Pad"), needsPermission: true)
+                    return menuBar.show(tr("Allow Screen Recording, then reopen ScreenPad",
+                                           "Autorise l’enregistrement de l’écran, puis relance ScreenPad"), needsPermission: true)
                 }
                 // Allowed, but the display can't be captured yet: Mac screens asleep (their waking restarts it), or
                 // just added. ponytail: retries every second while awake, no backoff.
@@ -747,7 +747,7 @@ final class MenuBar: NSObject {
         let icon = NSImage(named: "MenuBarIcon")
         icon?.isTemplate = true
         item.button?.image = icon
-        item.button?.toolTip = "Screen Pad"
+        item.button?.toolTip = "ScreenPad"
         for menuItem in [touchItem, blockMouseItem, smoothingItem, loginItem, permissionItem] { menuItem.target = self }
         permissionItem.isHidden = true
         sizeItem.submenu = NSMenu()
@@ -757,7 +757,7 @@ final class MenuBar: NSObject {
         menu.items = [statusLine, .separator(), sizeItem, smoothingItem, frameRateItem, bitRateItem, touchItem, blockMouseItem, .separator(),
                       loginItem,
                       permissionItem, .separator(),
-                      NSMenuItem(title: tr("Quit Screen Pad", "Quitter Screen Pad"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")]
+                      NSMenuItem(title: tr("Quit ScreenPad", "Quitter ScreenPad"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")]
         item.menu = menu
         show(tr("Starting…", "Démarrage…"))
         refresh()
@@ -880,7 +880,7 @@ final class MenuBar: NSObject {
 signal(SIGPIPE, SIG_IGN)
 if isatty(STDOUT_FILENO) == 0 {  // launched from Finder: keep a log of the last run
     let logs = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Logs")
-    let log = logs.appendingPathComponent("Screen Pad.log"), previous = logs.appendingPathComponent("Screen Pad.previous.log")
+    let log = logs.appendingPathComponent("ScreenPad.log"), previous = logs.appendingPathComponent("ScreenPad.previous.log")
     try? FileManager.default.removeItem(at: previous)
     try? FileManager.default.moveItem(at: log, to: previous)  // a relaunch must not erase what went wrong
     freopen(log.path, "w", stdout)
@@ -891,9 +891,9 @@ let app = NSApplication.shared
 app.setActivationPolicy(.accessory)  // menu bar only, no Dock icon (LSUIElement does the same for the bundle)
 if NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier ?? "").count > 1 {
     let alert = NSAlert()
-    alert.messageText = tr("Screen Pad is already running", "Screen Pad tourne déjà")
-    alert.informativeText = tr("Another copy of Screen Pad is open: its icon is in the menu bar.",
-                               "Une autre copie de Screen Pad est ouverte : son icône est dans la barre des menus.")
+    alert.messageText = tr("ScreenPad is already running", "ScreenPad tourne déjà")
+    alert.informativeText = tr("Another copy of ScreenPad is open: its icon is in the menu bar.",
+                               "Une autre copie de ScreenPad est ouverte : son icône est dans la barre des menus.")
     alert.runModal()
     exit(0)
 }

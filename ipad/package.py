@@ -7,24 +7,24 @@ from pathlib import Path
 app, tweak, icon, repo = map(Path, sys.argv[1:5])
 VERSION = plistlib.loads((app / "Info.plist").read_bytes())["CFBundleShortVersionString"]
 CONTROL = f"""Package: fr.krnd.screenpad
-Name: Screen Pad
+Name: ScreenPad
 Version: {VERSION}
 Architecture: iphoneos-arm
 Depends: mobilesubstrate, uikittools
 Section: Utilities
 Maintainer: Kitround
 Author: Kitround
-Homepage: https://github.com/Kitround/screenpad
-Description: Use the iPad as an extra display for your Mac, over USB. Needs the Screen Pad Mac app.
+Homepage: https://github.com/Kitround/ScreenPad
+Description: Use the iPad as an extra display for your Mac, over USB. Needs the ScreenPad Mac app.
 """
-RELEASE = """Origin: Screen Pad
-Label: Screen Pad
+RELEASE = """Origin: ScreenPad
+Label: ScreenPad
 Suite: stable
 Version: 1.0
 Codename: ios
 Architectures: iphoneos-arm
 Components: main
-Description: Screen Pad, an iPad as an extra display for the Mac
+Description: ScreenPad, an iPad as an extra display for the Mac
 """
 # Registers the app on the home screen; tells Cydia to restart SpringBoard, which loads the tweak.
 POSTINST = b"""#!/bin/sh

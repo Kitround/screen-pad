@@ -1,13 +1,13 @@
-// Screen Pad Backlight — tweak loaded into SpringBoard by MobileSubstrate (jailbroken iPad only).
+// ScreenPad Backlight — tweak loaded into SpringBoard by MobileSubstrate (jailbroken iPad only).
 // At brightness 0 the LCD backlight stays on, and backboardd only lets the system app (SpringBoard) switch it off
-// ("Only system apps can use _BKHIDXXSetBacklightFactorWithFadeDuration"), so the Screen Pad app asks us with a
+// ("Only system apps can use _BKHIDXXSetBacklightFactorWithFadeDuration"), so the ScreenPad app asks us with a
 // Darwin notification while the Mac's screens sleep, and again to bring the light back.
 #import <Foundation/Foundation.h>
 #include <notify.h>
 
 void BKSHIDServicesSetBacklightFactorWithFadeDuration(float factor, int fadeDuration, bool silently);
 
-// Any process can post the notification: only switch off for the Screen Pad app in front.
+// Any process can post the notification: only switch off for the ScreenPad app in front.
 static BOOL screenPadInFront(void) {
     id springBoard = [NSClassFromString(@"UIApplication") performSelector:@selector(sharedApplication)];
     SEL front = NSSelectorFromString(@"_accessibilityFrontMostApplication");

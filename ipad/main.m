@@ -1,10 +1,10 @@
-// Screen Pad — iPad side: open-source stand-in for the Yam Display iPad app (iPad mini 1, iOS 9, armv7 and up).
+// ScreenPad — iPad side: open-source stand-in for the Yam Display iPad app (iPad mini 1, iOS 9, armv7 and up).
 // Speaks the Yam Display protocol, so the Mac app in mac/ serves this app and Yam alike (wire format at the top of
 // mac/main.swift). Listens on localhost:23471, reached from the Mac through usbmuxd, shows the H.264 stream with
 // AVSampleBufferDisplayLayer (hardware decode) and sends taps and drags back (used when the Mac's "Touch" is on).
 // Beyond Yam: while the Mac's screens sleep it sends "screenOff" (only to this app, recognized by "screenPadVersion"
 // in the hello: Yam 2.2 shows its white waiting screen) and the backlight goes down until "screenOn": brightness 0,
-// and fully off on a jailbroken iPad with the Screen Pad Backlight tweak (ipad/backlight.m) in SpringBoard.
+// and fully off on a jailbroken iPad with the ScreenPad Backlight tweak (ipad/backlight.m) in SpringBoard.
 #import <UIKit/UIKit.h>
 #import <AVFoundation/AVFoundation.h>
 #import <CoreMedia/CoreMedia.h>
@@ -68,8 +68,8 @@ static BOOL writeAll(int fd, const void *buffer, size_t count) {
     _waiting = [[UILabel alloc] initWithFrame:view.bounds];
     _waiting.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     BOOL french = [[NSLocale preferredLanguages].firstObject hasPrefix:@"fr"];
-    _waiting.text = french ? @"Screen Pad\n\nBranchez l’iPad au Mac avec le câble USB\net ouvrez Screen Pad sur le Mac."
-                           : @"Screen Pad\n\nConnect the iPad to the Mac with a USB cable\nand open Screen Pad on the Mac.";
+    _waiting.text = french ? @"ScreenPad\n\nBranchez l’iPad au Mac avec le câble USB\net ouvrez ScreenPad sur le Mac."
+                           : @"ScreenPad\n\nConnect the iPad to the Mac with a USB cable\nand open ScreenPad on the Mac.";
     _waiting.textColor = [UIColor grayColor];
     _waiting.backgroundColor = [UIColor blackColor];  // covers the last picture, which iOS 9 keeps after a flush
     _waiting.textAlignment = NSTextAlignmentCenter;
